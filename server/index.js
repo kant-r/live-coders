@@ -17,15 +17,55 @@ const io = new Server(server);
 
 
 app.post("/compile", (req,res) => {
+
+  
   let code = req.body.code;
     let language = req.body.language;
     let input = req.body.input;
-  var envData = {OS: "windows"};
-  console.log(code, language);
-  compiler.compilePython(envData, code, function(data){
-    res.send(data);
-    console.log(data);
+  
+  console.log(code, language, input);
+  compiler.flush(function(){
+    console.log('All temporary files flushed !'); 
+    });
+
+  if(language === 'python')
+  {
+    var envData = {OS: "windows"};
+
+    compiler.compilePython(envData, code, function(data){
+      res.send(data);
+      console.log(data);
+    })
+  }
+  else if(language === "java")
+  {
+    var envData = {OS: "windows"};
+    compiler.compileJava(envData, code, function(data) {
+      if (data instanceof Error) {
+          console.error('Compilation error:', data);
+          res.status(500).send('Compilation error: ' + data.message);
+      } else {
+          console.log('Compilation successful:', data);
+          res.send(data);
+      }
   });
+  }
+  else if(language === "cpp" || language === "c")
+  {
+    var envData = { OS : "windows" , cmd : "g++"};
+    compiler.compileCPP(envData , code , function (data) {
+      res.send(data);
+      //data.error = error message 
+      //data.output = output value
+  });
+  }
+ else
+ {
+  console.log("No language selected");
+ }
+
+  
+    
 })
 
 
